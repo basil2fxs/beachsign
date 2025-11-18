@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html>
+<body style="margin:0;background:black;">
+
+<canvas id="c" width="64" height="32"></canvas>
+
+<script>
+const c = document.getElementById("c");
+const ctx = c.getContext("2d");
+
+const screens = [
+  ["SHARK", "ALERT"],
+  ["BEACH", "CLOSED"]
+];
+
+let i = 0;
+
+function draw() {
+  ctx.fillStyle = "black";
+  ctx.fillRect(0,0,64,32);
+
+  ctx.fillStyle = "red";
+  ctx.font = "8px monospace";
+  ctx.textAlign = "center";
+
+  // Line 1
+  ctx.fillText(screens[i][0], 32, 10);
+
+  // Line 2
+  ctx.fillText(screens[i][1], 32, 24);
+}
+
+function next() {
+  i = (i + 1) % screens.length;
+  draw();
+}
+
+draw();
+setInterval(next, 5000);
+</script>
+
+</body>
+</html>
