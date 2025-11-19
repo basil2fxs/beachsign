@@ -1,12 +1,141 @@
 <!DOCTYPE html>
 <html>
-<body style="margin:0;background:black;">
+<body style="margin:0; background:black;">
 
-<canvas id="c" width="64" height="32"></canvas>
+<canvas id="c" width="64" height="32"
+        style="display:block; margin:0 auto; image-rendering:pixelated; width:640px; height:320px;">
+</canvas>
 
 <script>
 const c = document.getElementById("c");
 const ctx = c.getContext("2d");
+
+// Simple 5x7 bitmap font for needed letters
+// '1' = LED on, '0' = off
+const FONT = {
+  "A": [
+    "01110",
+    "10001",
+    "10001",
+    "11111",
+    "10001",
+    "10001",
+    "10001"
+  ],
+  "B": [
+    "11110",
+    "10001",
+    "10001",
+    "11110",
+    "10001",
+    "10001",
+    "11110"
+  ],
+  "C": [
+    "01111",
+    "10000",
+    "10000",
+    "10000",
+    "10000",
+    "10000",
+    "01111"
+  ],
+  "D": [
+    "11110",
+    "10001",
+    "10001",
+    "10001",
+    "10001",
+    "10001",
+    "11110"
+  ],
+  "E": [
+    "11111",
+    "10000",
+    "10000",
+    "11110",
+    "10000",
+    "10000",
+    "11111"
+  ],
+  "H": [
+    "10001",
+    "10001",
+    "10001",
+    "11111",
+    "10001",
+    "10001",
+    "10001"
+  ],
+  "K": [
+    "10001",
+    "10010",
+    "10100",
+    "11000",
+    "10100",
+    "10010",
+    "10001"
+  ],
+  "L": [
+    "10000",
+    "10000",
+    "10000",
+    "10000",
+    "10000",
+    "10000",
+    "11111"
+  ],
+  "O": [
+    "01110",
+    "10001",
+    "10001",
+    "10001",
+    "10001",
+    "10001",
+    "01110"
+  ],
+  "R": [
+    "11110",
+    "10001",
+    "10001",
+    "11110",
+    "10100",
+    "10010",
+    "10001"
+  ],
+  "S": [
+    "01111",
+    "10000",
+    "10000",
+    "01110",
+    "00001",
+    "00001",
+    "11110"
+  ],
+  "T": [
+    "11111",
+    "00100",
+    "00100",
+    "00100",
+    "00100",
+    "00100",
+    "00100"
+  ],
+  " ": [ // space
+    "00000",
+    "00000",
+    "00000",
+    "00000",
+    "00000",
+    "00000",
+    "00000"
+  ]
+};
+
+const CHAR_WIDTH = 5;
+const CHAR_HEIGHT = 7;
+const CHAR_SPACING = 1;     // space between chars
+const SPACE_WIDTH = 3;      // visual width for ' '
 
 const screens = [
   ["SHARK", "ALERT"],
@@ -15,19 +144,65 @@ const screens = [
 
 let i = 0;
 
-function draw() {
-  ctx.fillStyle = "black";
-  ctx.fillRect(0,0,64,32);
+// Calculate pixel width of a word
+function textWidth(text) {
+  let w = 0;
+  for (const ch of text) {
+    if (ch === " ") {
+      w += SPACE_WIDTH;
+    } else {
+      w += CHAR_WIDTH;
+    }
+    w += CHAR_SPACING;
+  }
+  return w > 0 ? w - CHAR_SPACING : 0;
+}
 
+// Draw one word using bitmap font
+function drawWord(text, startX, startY) {
+  let x = startX;
   ctx.fillStyle = "red";
-  ctx.font = "8px monospace";
-  ctx.textAlign = "center";
 
-  // Line 1
-  ctx.fillText(screens[i][0], 32, 10);
+  for (const ch of text) {
+    const glyph = FONT[ch] || FONT[" "];
+    const charW = (ch === " ") ? SPACE_WIDTH : CHAR_WIDTH;
 
-  // Line 2
-  ctx.fillText(screens[i][1], 32, 24);
+    // Draw pixels for this character
+    if (glyph) {
+      for (let row = 0; row < CHAR_HEIGHT; row++) {
+        for (let col = 0; col < CHAR_WIDTH; col++) {
+          if (glyph[row][col] === "1") {
+            ctx.fillRect(x + col, startY + row, 1, 1);
+          }
+        }
+      }
+    }
+
+    x += charW + CHAR_SPACING;
+  }
+}
+
+function draw() {
+  // Clear full 64x32 canvas
+  ctx.fillStyle = "black";
+  ctx.fillRect(0, 0, 64, 32);
+
+  const topText = screens[i][0];
+  const bottomText = screens[i][1];
+
+  // Center each line horizontally
+  const topWidth = textWidth(topText);
+  const bottomWidth = textWidth(bottomText);
+
+  const topX = Math.floor((64 - topWidth) / 2);
+  const bottomX = Math.floor((64 - bottomWidth) / 2);
+
+  // Choose vertical placement
+  const topY = 4;                    // top line start row
+  const bottomY = topY + CHAR_HEIGHT + 6; // some gap then second line
+
+  drawWord(topText, topX, topY);
+  drawWord(bottomText, bottomX, bottomY);
 }
 
 function next() {
@@ -35,7 +210,10 @@ function next() {
   draw();
 }
 
+// Initial draw
 draw();
+
+// Swap every 5 seconds
 setInterval(next, 5000);
 </script>
 
